@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WhatsApp Chat Exact Replica</title>
+    <style>
+        /* Base Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Full-screen wrapper ensuring perfect fit */
+        html, body {
+            background-color: #0b141a; /* Exact WhatsApp outer dark color */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* The simulated phone screen */
+        .phone-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 450px;
+            background-color: #0b141a;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- HEADER --- */
+        .header {
+            background-color: #0b141a; /* Exact top bar color */
+            color: #e9edef;
+            padding: 10px 12px 10px 8px;
+            display: flex;
+            align-items: center;
+            height: 60px;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .back-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .back-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #e9edef;
+        }
+
+        .group-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #285473;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 4px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .group-avatar svg {
+            width: 24px;
+            height: 24px;
+            fill: #e9edef;
+        }
+
+        .header-text {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .group-title {
+            font-size: 16.5px;
+            font-weight: 500;
+            color: #e9edef;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 22px;
+        }
+
+        .group-subtitle {
+            font-size: 13px;
+            color: #8696a0;
+            line-height: 18px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            color: #aebac1;
+        }
+
+        .header-actions svg {
+            width: 22px;
+            height: 22px;
+            fill: #aebac1;
+        }
+
+        /* --- CHAT AREA --- */
+        .chat-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            /* Authentic dark nature wallpaper with accurate dark overlay */
+            background: linear-gradient(rgba(11, 20, 26, 0.65), rgba(11, 20, 26, 0.65)), url('https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?q=80&w=600&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            padding-bottom: 20px;
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+
+        /* Date Pill */
+        .date-pill {
+            align-self: center;
+            background-color: #182229;
+            color: #8696a0;
+            padding: 6px 14px;
+            font-size: 12.5px;
+            border-radius: 8px;
+            margin: 12px 0;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+        }
+
+        /* --- MESSAGE LAYOUT --- */
+        .message-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            margin-bottom: 2px;
+            width: 100%;
+            padding-right: 12%; /* Keep messages from stretching to the exact right edge */
+            position: relative;
+        }
+
+        .message-row.last-in-cluster {
+            margin-bottom: 12px;
+        }
+
+        /* Profile Picture Column */
+        .avatar-col {
+            width: 32px;
+            flex-shrink: 0;
+            margin-right: 8px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            visibility: hidden; /* Hidden by default, shown via class */
+        }
+
+        .user-avatar.show {
+            visibility: visible;
+        }
+
+        /* Message Bubble Column */
+        .bubble-col {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex-grow: 1;
+            max-width: 100%;
+        }
+
+        .message-bubble {
+            background-color: #202c33;
+            color: #e9edef;
+            padding: 6px 10px 8px 10px;
+            border-radius: 8px;
+            font-size: 15px;
+            line-height: 1.4;
+            box-shadow: 0 1px 1.5px rgba(0,0,0,0.2);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Separation of Sender Info from Message Content (Fixes "sticking" issue) */
+        .sender-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+
+        .sender-name {
+            color: #25D366; /* WhatsApp Green */
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .sender-phone {
+            color: #8696a0;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Forwarded indicator */
+        .forwarded-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #8696a0;
+            font-size: 13px;
+            font-style: italic;
+            margin-bottom: 6px;
+        }
+
+        .forwarded-row svg {
+            width: 14px;
+            height: 14px;
+            fill: #8696a0;
+        }
+
+        /* Message text body */
+        .message-text {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #e9edef;
+            font-size: 14.5px;
+        }
+
+        /* Timestamp */
+        .timestamp {
+            align-self: flex-end;
+            font-size: 11px;
+            color: #8696a0;
+            margin-top: 4px;
+            margin-bottom: -2px;
+        }
+
+        /* Document Attachment Blur Area */
+        .attachment-box {
+            background: linear-gradient(135deg, rgba(235, 235, 235, 0.9), rgba(255, 255, 255, 0.85));
+            border-radius: 6px;
+            height: 100px;
+            margin-top: 2px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Simulating text blur inside document */
+        .attachment-box::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 70%;
+            height: 12px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            filter: blur(2px);
+        }
+        .attachment-box::after {
+            content: '';
+            position: absolute;
+            top: 35px;
+            left: 15px;
+            width: 50%;
+            height: 12px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            filter: blur(2px);
+        }
+
+        .download-pill {
+            background-color: rgba(17, 27, 33, 0.65);
+            color: #e9edef;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 2;
+        }
+
+        .download-pill svg {
+            width: 14px;
+            height: 14px;
+            fill: #e9edef;
+        }
+
+        /* Reactions overlay */
+        .reaction-badge {
+            position: absolute;
+            bottom: -10px;
+            left: 10px;
+            background-color: #202c33;
+            border: 1px solid #0b141a;
+            padding: 2px 7px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            z-index: 5;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .reaction-badge span {
+            color: #8696a0;
+            font-size: 11.5px;
+            font-weight: 500;
+        }
+
+        /* --- FOOTER & NAV --- */
+        .footer {
+            background-color: #0b141a;
+            color: #8696a0;
+            text-align: center;
+            padding: 16px 10px;
+            font-size: 13.5px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .footer span {
+            color: #00a884;
+            margin: 0 4px;
+        }
+
+        .system-nav {
+            background-color: #0b141a;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            padding-bottom: 8px;
+        }
+
+        .system-nav-bar {
+            width: 35%;
+            height: 4px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    
+    <!-- Top Header -->
+    <div class="header">
+        <div class="back-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+        </div>
+        <div class="group-avatar">
+            <svg viewBox="0 0 24 24">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 1.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+            </svg>
+        </div>
+        <div class="header-text">
+            <div class="group-title">Xth-D (2026-2027)</div>
+            <div class="group-subtitle">only admins can send messages</div>
+        </div>
+        <div class="header-actions">
+            <!-- Chat Announcement Icon -->
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12zM7 9h10v2H7zm0-3h10v2H7zm0 6h7v2H7z"/></svg>
+            <!-- 3 Dots Menu -->
+            <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        </div>
+    </div>
+
+    <!-- Scrollable Chat Body -->
+    <div class="chat-area">
+        
+        <!-- ============================================== -->
+        <!-- SCROLLABLE PRE-FILL MESSAGES                   -->
+        <!-- ============================================== -->
+        <div class="date-pill">15 June 2026</div>
+
+        <div class="message-row">
+            <div class="avatar-col">
+                <img class="user-avatar show" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop" alt="Profile">
+            </div>
+            <div class="bubble-col">
+                <div class="message-bubble">
+                    <div class="sender-info-row">
+                        <span class="sender-name">~ Sushma</span>
+                        <span class="sender-phone">+91 98697 33479</span>
+                    </div>
+                    <div class="message-text">Dear Parents, please note that the school fees for the first quarter must be cleared by 20th June 2026 to avoid any late fine charges. Ignore if already paid.</div>
+                    <div class="timestamp">9:30 am</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="message-row last-in-cluster">
+            <div class="avatar-col">
+                <!-- Avatar hidden for subsequent messages in same cluster -->
+            </div>
+            <div class="bubble-col">
+                <div class="message-bubble">
+                    <div class="message-text">Dear students, the uniform inspection will be conducted tomorrow morning during assembly. Please ensure you are wearing formal black shoes and proper badges.</div>
+                    <div class="timestamp">1:15 pm</div>
+                </div>
+                <div class="reaction-badge">👍 <span>12</span></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- EXACT REPLICA OF THE IMAGE STARTS HERE         -->
+        <!-- ============================================== -->
+        
+        <!-- "18th June" Message Block -->
+        <div class="message-row last-in-cluster" style="margin-top: 10px;">
+            <div class="avatar-col"></div>
+            <div class="bubble-col">
+                <div class="message-bubble">
+                    <div class="message-text">18th June 2026 –International Yoga Day
+
+19th June–Father’s Day Essay Writing Competition-
+Topics:
+My Dad, My Role Model.
+Lessons My Dad Taught Me.
+Thank You, Dad, for Standing by Me.
+
+19th. June
+World Music Day–’Interhouse Symphony Orchestra’ Competition</div>
+                    <div class="timestamp">4:07 pm</div>
+                </div>
+                <div class="reaction-badge">👍 <span>7</span></div>
+            </div>
+        </div>
+
+        <div class="date-pill">Monday</div>
+
+        <!-- Attachment Message Block -->
+        <div class="message-row">
+            <div class="avatar-col">
+                <img class="user-avatar show" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop" alt="Profile">
+            </div>
+            <div class="bubble-col">
+                <div class="message-bubble">
+                    <div class="sender-info-row">
+                        <span class="sender-name">~ Sushma</span>
+                        <span class="sender-phone">+91 98697 33479</span>
+                    </div>
+                    <div class="forwarded-row">
+                        <svg viewBox="0 0 24 24"><path d="M10 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>
+                        Forwarded
+                    </div>
+                    <div class="attachment-box">
+                        <div class="download-pill">
+                            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            25 kB
+                        </div>
+                    </div>
+                    <div class="timestamp">8:40 pm</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Championship Message Block -->
+        <div class="message-row last-in-cluster">
+            <div class="avatar-col"></div>
+            <div class="bubble-col">
+                <div class="message-bubble">
+                    <div class="sender-info-row">
+                        <span class="sender-name">~ Sushma</span>
+                        <span class="sender-phone">+91 98697 33479</span>
+                    </div>
+                    <div class="forwarded-row">
+                        <svg viewBox="0 0 24 24"><path d="M10 9V5l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z"/></svg>
+                        Forwarded
+                    </div>
+                    <div class="message-text">Dear students we are having the All India RyN Championship The young Tata on Exciting Careers. Kindly give your names to Carol Miss if your interested to join this championship. Interested students will give their names latest by Wednesday</div>
+                    <div class="timestamp">8:40 pm</div>
+                </div>
+                <div class="reaction-badge">👍</div>
+            </div>
+        </div>
+
+        <!-- Requested Wednesday Tag -->
+        <div class="date-pill">Wednesday</div>
+
+        <!-- Heavy Rainfall Notice Block (Text Sticking Fixed via distinct layout blocks) -->
+        <div class="message-row last-in-cluster" style="margin-bottom: 25px;">
+            <div class="avatar-col">
+                <img class="user-avatar show" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop" alt="Profile">
+            </div>
+            <div class="bubble-col">
+                <div class="message-bubble">
+                    <div class="sender-info-row">
+                        <span class="sender-name">~ Sushma</span>
+                        <span class="sender-phone">+91 98697 33479</span>
+                    </div>
+                    <div class="message-text">Dear students,
+
+Due to the heavy rainfall and weather conditions, the school will remain closed today. Stay safe and take care.
+
+– Notice by H.M</div>
+                    <div class="timestamp">9:15 pm</div>
+                </div>
+                <div class="reaction-badge">👍 ❤️ <span>2</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Footer -->
+    <div class="footer">
+        Only <span>admins</span> can send messages
+    </div>
+
+    <!-- System Navigation Bar to make it look like a real phone -->
+    <div class="system-nav">
+        <div class="system-nav-bar"></div>
+    </div>
+    
+</div>
+
+</body>
+</html>
